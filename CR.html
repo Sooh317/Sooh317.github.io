@@ -32,41 +32,54 @@
             }
 
             #real_site {
-                width: 250px;
-                height:250px;
-                background-color: rgb(255, 255, 255);
+                width: 300px;
+                height:300px;
+                background-color: white;
+                text-align: center;
+                float : right
             }
 
             #list {
                 background-color: orange;
                 width: 750px;
                 padding: 20px;
+                margin: 5px;
+                float : left
+            }
+
+            #description {
                 margin: 30px;
+                height: 400px;
+                background-color: white;
             }
 
         </style>
     </head>
     <body>
-        <h1>日本語版クラロワAPIへようこそ!!!</h1>
-        <div id="real_site">
-            <p><a href="https://royaleapi.com/?lang=ja" target="_blank">本家のClashRoyaleAPI<br>
-                    <img src="royaleapi.png" alt="image of RoyaleAPI" width="200" height="200"> 
-                </a></p>
+        <h1 style="text-align: center;">簡易版クラロワAPIへようこそ!!!</h1>
+        <div id="description">
+            <div id="real_site">
+                <p><a href="https://royaleapi.com/?lang=ja" target="_blank", style="text-align: center;">本家のClashRoyaleAPI<br>
+                        <img src="royaleapi.png" alt="image of RoyaleAPI" width="200" height="200"> 
+                    </a></p>
+            </div>
+            <div id="list">
+                <dl>
+                    <dt><a href="https://royaleapi.com/player/2UJR0JRU">自分のページ</a></dt>
+                    <dd>本家サイトにおける自分の情報</dd>
+                    <dt><a href="#search_card">カード検索</a></dt>
+                    <dd>カード情報が見れる</dd>
+                    <dt><a href="#search_player">プレイヤー検索</a></dt>
+                    <dd>知りたいプレイヤーについての情報が見れる</dd>
+                    <dt><a href="#search_deck">デッキ検索</a></dt>
+                    <dd>流行りのデッキやテンプレデッキがわかる</dd>
+                    <dt><a href="#search_clan">クラン検索</a></dt>
+                    <dd>クランメンバーやクラン対戦成績などがわかる</dd>
+                    <dt><a href="#view_ranking">ランキング</a></dt>
+                    <dd>様々なランキングについて</dd>
+                </dl>
+            </div>
         </div>
-        <dl id="list">
-            <dt><a href="https://royaleapi.com/player/2UJR0JRU">自分のページ</a></dt>
-            <dd>本家サイトにおける自分の情報</dd>
-            <dt><a href="#search_card">カード検索</a></dt>
-            <dd>カード情報が見れる</dd>
-            <dt><a href="#search_player">プレイヤー検索</a></dt>
-            <dd>知りたいプレイヤーについての情報が見れる</dd>
-            <dt><a href="#search_deck">デッキ検索</a></dt>
-            <dd>流行りのデッキやテンプレデッキがわかる</dd>
-            <dt><a href="#search_clan">クラン検索</a></dt>
-            <dd>クランメンバーやクラン対戦成績などがわかる</dd>
-            <dt><a href="#view_ranking">ランキング</a></dt>
-            <dd>様々なランキングについて</dd>
-        </dl>
         <div id="search_card">
             <h3 class="search">カード検索</h3>
             <form>
