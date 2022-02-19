@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title> Clash Royale API (日本語版)</title>
+        <link rel="stylesheet" href="style.css">
+        <style>
+            #ranking_figure {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+
+            .search, #view_ranking {
+                color: brown;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 30px;
+            }
+
+            td , th {
+                border: 1px solid black;
+                padding: 5px;
+            }
+
+            dt {
+                font-size: large;
+            }
+
+            div {
+                margin: 30px;
+                padding: 20px;
+                background-color: aquamarine;
+            }
+
+            #real_site {
+                width: 250px;
+                height:250px;
+                background-color: rgb(255, 255, 255);
+            }
+
+            #list {
+                background-color: orange;
+                width: 750px;
+                padding: 20px;
+                margin: 30px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <h1>日本語版クラロワAPIへようこそ!!!</h1>
+        <div id="real_site">
+            <p><a href="https://royaleapi.com/?lang=ja" target="_blank">本家のClashRoyaleAPI<br>
+                    <img src="royaleapi.png" alt="image of RoyaleAPI" width="200" height="200"> 
+                </a></p>
+        </div>
+        <dl id="list">
+            <dt><a href="https://royaleapi.com/player/2UJR0JRU">自分のページ</a></dt>
+            <dd>本家サイトにおける自分の情報</dd>
+            <dt><a href="#search_card">カード検索</a></dt>
+            <dd>カード情報が見れる</dd>
+            <dt><a href="#search_player">プレイヤー検索</a></dt>
+            <dd>知りたいプレイヤーについての情報が見れる</dd>
+            <dt><a href="#search_deck">デッキ検索</a></dt>
+            <dd>流行りのデッキやテンプレデッキがわかる</dd>
+            <dt><a href="#search_clan">クラン検索</a></dt>
+            <dd>クランメンバーやクラン対戦成績などがわかる</dd>
+            <dt><a href="#view_ranking">ランキング</a></dt>
+            <dd>様々なランキングについて</dd>
+        </dl>
+        <div id="search_card">
+            <h3 class="search">カード検索</h3>
+            <form>
+                <input type="text" placeholder="プリンセス" name="card_name">
+                <input type="submit">
+            </form>
+        </div>
+        <div id="search_player">
+            <h3 class="search">プレイヤー検索</h3>
+            <ul>
+                <li>プレイヤータグ
+                    <form>
+                        <input type="text" placeholder="#2UJR0JRU" name="player_tag">
+                        <button>検索</button>
+                    </form>
+                </li>
+                <li>プレイヤー名
+                    <form>
+                        <input type="text" placeholder="Sooh">
+                        <button>検索</button>
+                    </form>
+                </li>
+                <li>お気に入り
+                    <ul>
+                        <li>むぎ</li>
+                        <li>KK</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h3 id="search_deck" class="search">デッキ検索</h3>
+        </div>  
+        <div>
+            <h3 id="search_clan" class="search">クラン検索</h3>
+        </div>
+        <div>
+            <h3 id="view_ranking">ランキング</h3>
+            <table id="ranking_figure">
+                <thead>
+                    <tr>
+                        <th>ローカルランキング</th>
+                        <th>グローバルランキング</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>むぎ</td>
+                        <td>むぎ</td>
+                    </tr>
+                    <tr>
+                        <td>KK</td>
+                        <td>Mohamed Light</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html> 
