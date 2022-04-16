@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title id="title">[utokyo-iscg-2022] Basic Assignment M1 (Spline)</title>
+<title id="title">Rational Bezier and de Casteljau</title>
 <script src="https://rawcdn.githack.com/toji/gl-matrix/v3.3.0/dist/gl-matrix-min.js"></script>
 <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/gl-matrix-util.js"></script>
 <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/legacygl.js"></script>
@@ -16,9 +16,11 @@ var canvas;
 var legacygl;
 var drawutil;
 var camera;
-var Ps; // [p0, p1, ...]
 var selected = null;
- 
+
+// mycode 
+var Ps; // [p0, p1, ...]
+
 function de_Casteljau_algorithm(p, t) { // p = [p0, ..., p_{n-1}]
     let np = [];
     for (let i = 0; i < p.length; i++){
@@ -33,6 +35,38 @@ function de_Casteljau_algorithm(p, t) { // p = [p0, ..., p_{n-1}]
     }
     return np[0];
 }
+
+
+function comb(n, k){
+    let res = 1;
+    for (let i = 1; i <= k; i++){
+        res = res * (n - i + 1) / i;
+    }
+    return res;
+}
+
+function eval_rational_bezier(p, t) {
+    let x = 0, y = 0;
+    let n = p.length - 1;
+    let coeffs = [];
+    let sum = 0;
+    for (let i = 0; i < p.length; i++){
+        let w = document.getElementById('weight' + i).value;
+        let tmp = w * comb(n, i) * Math.pow(1 - t, n - i) * Math.pow(t, i);
+        sum += tmp;
+        coeffs.push(tmp);
+    }
+
+    let res = [0.0, 0.0];
+    for (let i = 0; i < p.length; i++){
+        vec2.scaleAndAdd_ip(res, p[i], coeffs[i] / sum);
+    }
+
+    return res;
+}
+
+// end
+
   
 
 function draw() {
@@ -53,7 +87,12 @@ function draw() {
     var numsteps = Number(document.getElementById("input_numsteps").value);
     for (var i = 0; i <= numsteps; ++i) {
         var t = i / numsteps;
-        legacygl.vertex2(de_Casteljau_algorithm(Ps, t));
+        if(document.getElementById("rational_bezier").checked){
+            legacygl.vertex2(eval_rational_bezier(Ps, t));
+        }
+        else{
+            legacygl.vertex2(de_Casteljau_algorithm(Ps, t));
+        }
     }
     legacygl.end();
     // draw sample points
@@ -61,7 +100,12 @@ function draw() {
         legacygl.begin(gl.POINTS);
         for (var i = 0; i <= numsteps; ++i) {
             var t = i / numsteps;
-            legacygl.vertex2(de_Casteljau_algorithm(Ps, t));
+            if(document.getElementById("rational_bezier").checked){
+                legacygl.vertex2(eval_rational_bezier(Ps, t));
+            }
+            else{
+                legacygl.vertex2(de_Casteljau_algorithm(Ps, t));
+            }
         }
         legacygl.end();
     }
@@ -118,11 +162,13 @@ function init() {
 
     ////////////////////////////////////////
     Ps = [];
+    Ws = [];
     let theta = Math.PI / 3;
     for (let i = 0; i < 6; i++){
         let x = 1.5 * Math.cos(theta * i);
         let y = 1.5 * Math.sin(theta * i);
         let po = [x, y];
+        Ws.push(1);
         Ps.push(po);
     }
     ////////////////////////////////////////
@@ -197,6 +243,19 @@ function init() {
   <h2><script type="text/javascript">document.write(document.getElementById("title").innerHTML);</script></h2>
   <canvas id="canvas" width="640" height="480" style="border:1px solid #000000"></canvas>
   <table>
+    <tr>
+        <td>Algorithm:</td>
+        <td colspan="2"><input type="radio" name="chosen_algo" id="rational_bezier" onchange="draw();" checked> Rational Bezier &emsp;
+        <input type="radio" name="chosen_algo" id="de_Casteljau" onchange="draw();">de Casteljau</td>
+    </tr>
+    <td>Weights: <br> (For Rational Bezier)</td>
+      <td>
+        w0&ensp;<input type="number" id="weight0" onchange="draw();" step="0.01" value="1"><br>
+        w1&ensp;<input type="number" id="weight1" onchange="draw();" step="0.01" value="1"><br>
+        w2&ensp;<input type="number" id="weight2" onchange="draw();" step="0.01" value="1"><br>
+        w3&ensp;<input type="number" id="weight3" onchange="draw();" step="0.01" value="1"><br>
+        w4&ensp;<input type="number" id="weight4" onchange="draw();" step="0.01" value="1"><br>
+        w5&ensp;<input type="number" id="weight5" onchange="draw();" step="0.01" value="1"><br>
     <tr>
       <td>Number of Steps:</td>
       <td colspan="2"><input type="number" id="input_numsteps" onchange="draw();" step="1" min="2" value="20"></td>
