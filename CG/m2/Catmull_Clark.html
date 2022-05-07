@@ -25,9 +25,8 @@ var displist_subdiv_faces;
 var displist_subdiv_edges;
 var drawutil;
 var camera;
-var is_init;
 
-function draw(is_init) {
+function draw() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if (!mesh_control) return;
     
@@ -69,17 +68,15 @@ function draw(is_init) {
     displist_subdiv_faces.draw(function() {
         // NOTE: this code assumes all faces are triangles!
         // Quads can be drawn by using legacygl.QUADS which internally splits each quad into two triangles
-        if(is_init){
-            legacygl.begin(gl.TRIANGLES);
-        }
-        else{
-            legacygl.begin(legacygl.QUADS);
-        }
+        legacygl.begin(gl.TRIANGLES);
         mesh_subdiv.faces.forEach(function(f) {
             legacygl.normal3(f.normal);
-            f.vertices().forEach(function(v){
-                legacygl.vertex3(v.point);
-            });
+            let vs = f.vertices();
+            for (let i = 0; i + 2 < vs.length; i++) {
+                legacygl.vertex3(vs[0].point);
+                legacygl.vertex3(vs[i + 1].point);
+                legacygl.vertex3(vs[i + 2].point);
+            }
         });
         legacygl.end();
     });
@@ -100,7 +97,6 @@ function draw(is_init) {
     }
 };
 function subdivide() {
-    is_init = false;
     // Catmull Clark Algorithm
     // 1. compute the centroids of all the faces around each vertex
     // 2. compute the middle points of each outgoing edge
@@ -184,7 +180,7 @@ function subdivide() {
     mesh_subdiv.compute_normals();
     displist_subdiv_faces.invalidate();
     displist_subdiv_edges.invalidate();
-    draw(is_init);
+    draw();
     document.getElementById("label_mesh_nv").innerHTML = mesh_subdiv.num_vertices();
     document.getElementById("label_mesh_nf").innerHTML = mesh_subdiv.num_faces();
     document.getElementById("label_mesh_ne").innerHTML = mesh_subdiv.num_edges();
@@ -199,7 +195,6 @@ function write_mesh() {
     a.click();
 }
 function init() {
-    is_init = true;
     // OpenGL context
     canvas = document.getElementById("canvas");
     gl = canvas.getContext("experimental-webgl");
@@ -271,7 +266,7 @@ function init() {
     canvas.onmousemove = function(evt) {
         if (camera.is_moving()) {
             camera.move(this.get_mousepos(evt));
-            draw(is_init);
+            draw();
         }
     };
     document.onmouseup = function(evt) {
@@ -303,7 +298,7 @@ function init() {
         displist_control.invalidate();
         displist_subdiv_faces.invalidate();
         displist_subdiv_edges.invalidate();
-        draw(is_init);
+        draw();
         document.getElementById("label_mesh_nv").innerHTML = mesh_subdiv.num_vertices();
         document.getElementById("label_mesh_nf").innerHTML = mesh_subdiv.num_faces();
         document.getElementById("label_mesh_ne").innerHTML = mesh_subdiv.num_edges();
@@ -337,7 +332,7 @@ function init() {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             displist_subdiv_faces.invalidate();
-            draw(is_init);
+            draw();
         };
         img.crossOrigin = "anonymous";
         img.src = dataurl;
@@ -367,7 +362,7 @@ function init() {
 };
 </script>
 </head>
-<body onload="init(); draw(is_init);">
+<body onload="init(); draw();">
   <h2><a target="_blank" href="http://research.nii.ac.jp/~takayama/teaching/utokyo-iscg-2021/"><script type="text/javascript">document.write(document.getElementById("title").innerHTML);</script></a></h2>
   <table>
     <tr>
@@ -383,7 +378,7 @@ function init() {
             <li><span id="label_mesh_nf">0</span> Faces</li>
             <li><span id="label_mesh_ne">0</span> Edges</li>
           </ul>
-          <li><button onclick="subdivide(); draw(is_init)">Subdivide</button></li>
+          <li><button onclick="subdivide(); draw()">Subdivide</button></li>
           <li><button onclick="write_mesh()">Write Mesh</button></li>
           <li>Material: <img id="img_material"></li>
           <ul>
@@ -391,8 +386,8 @@ function init() {
           </ul>
           <li>Draw Options</li>
           <ul>
-              <li><input type="checkbox" id="check_show_edges" checked onchange="draw(is_init)">Show Edges</li>
-              <li><input type="checkbox" id="check_show_control" checked onchange="draw(is_init)">Show Control Mesh</li>
+              <li><input type="checkbox" id="check_show_edges" checked onchange="draw()">Show Edges</li>
+              <li><input type="checkbox" id="check_show_control" checked onchange="draw()">Show Control Mesh</li>
           </ul>
           <li>Camera Control</li>
           <ul>
