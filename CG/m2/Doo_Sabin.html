@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title id="title">[utokyo-iscg-2022] Advanced Assignment M2 (Catmull Clark Algorithm)</title>
+<title id="title">[utokyo-iscg-2022] Advanced Assignment M2 (Doo Sabin Algorithm)</title>
 <script src="https://rawcdn.githack.com/toji/gl-matrix/v3.3.0/dist/gl-matrix-min.js"></script>
 <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/gl-matrix-util.js"></script>
 <script src="https://bbcdn.githack.com/kenshi84/legacygl.js/raw/master/legacygl.js"></script>
@@ -97,81 +97,80 @@ function draw() {
     }
 };
 function subdivide() {
-    // Catmull Clark Algorithm
-    // 1. compute the centroids of all the faces around each vertex
-    // 2. compute the middle points of each outgoing edge
+    // Doo Sabin Algorithm
+    // 1. compute the centroid of the fact that corresponds to the outgoing edge from this vertex
+    // 2. compute the middle points of the edges incident to the vertex
     // 3. compute the next point of the current vertices.
-    mesh_subdiv.vertices.forEach(function(v){
-        let centroids = [];
-        v.faces().forEach(function(f){
-            centroids.push(f.centroid());
-        });      
 
-        let middle_points = [];
-        v.outgoing_halfedges().forEach(function(e){
-            let w0 = e.vertex;
-            let w1 = e.opposite.vertex
-            middle_points.push(vec3.scale([], vec3.add([], w0.point, w1.point), 0.5));
+    // initialization
+    let cnt = 0;
+    mesh_subdiv.faces.forEach(function(f){
+        f.subdiv_points = [];
+        f.halfedges().forEach(function(h){
+            h.subdiv_points = [];
+            h.vertex.subdiv_points = [];
         });
-
-        let valence = v.degree();
-
-        let Q = [0, 0, 0];
-        for(let i = 0; i < centroids.length; i++){
-            vec3.add_ip(Q, centroids[i]);
-        }
-        vec3.scale_ip(Q, (1 / centroids.length) * (1 / valence));
-        let P = [0, 0, 0];
-        for(let i = 0; i < middle_points.length; i++){
-            vec3.add_ip(P, middle_points[i]);
-        }
-        vec3.scale_ip(P, (1 / middle_points.length) * (2 / valence));
-
-        // res is the next point of this vertex
-        v.subdiv_point = vec3.add([], vec3.add([], P, Q), vec3.scale([], v.point, 1 - (3 / valence)));
     });
 
-    // for each edge, compute subdivided point
-    mesh_subdiv.edges_forEach(function(e){
-        // ... -> a -> b => c -> d -> ... で e = (b, c)の時
-        // e.vertices = [b, c]
-        // e.halfedge.next = (c, d)
-        // e.halfedge.oposite = (c, b) .next = (b, a)
-        var v = e.vertices();
-        e.subdiv_point = vec3.scale([], vec3.add([], v[0].point, v[1].point), 0.5);
+    mesh_subdiv.faces.forEach(function(f){
+        let centroid = f.centroid();
+        f.halfedges().forEach(function(h){
+            // compute one of the next vertices as to h.from_vertex()
+            let mid1 = vec3.scale([], vec3.add([], h.vertex.point, h.from_vertex().point), 0.5);
+            let mid2 = vec3.scale([], vec3.add([], h.prev.vertex.point, h.prev.from_vertex().point), 0.5);
+            let point = vec3.scale([], vec3.add([], vec3.add([], vec3.add([], mid1, mid2), centroid), h.from_vertex().point), 1/4);
+            f.subdiv_points.push([point, cnt]);
+            h.subdiv_points.push([point, cnt]);
+            h.prev.subdiv_points.push([point, cnt]);
+            h.from_vertex().subdiv_points.push([point, cnt]);
+            cnt += 1;
+        });
     });
 
     // make next subdiv mesh topology
     var mesh_subdiv_next = make_halfedge_mesh();
-    var offset1 = mesh_subdiv.num_vertices();
-    var offset2 = offset1 + mesh_subdiv.num_edges();
     mesh_subdiv.faces.forEach(function(f){
+        let fv_indices = [];
+        for(let i = 0; i < f.subdiv_points.length; i++){
+            let point = f.subdiv_points[i][0];
+            let id = f.subdiv_points[i][1];
+            fv_indices.push(id);
+        }
+        mesh_subdiv_next.add_face(fv_indices);
+        
         f.halfedges().forEach(function(h){
-            // a => b
-            // from_vertex = a
-            var fv_indices = [h.from_vertex().id];
-            fv_indices.push(offset1 + h.edge.id);
-            fv_indices.push(offset2 + f.id);
-            fv_indices.push(offset1 + h.prev.edge.id);
+            let fv_indices = [];
+            for(let i = 0; i < h.subdiv_points.length; i++){
+                let point = h.subdiv_points[i][0];
+                let id = h.subdiv_points[i][1];
+                fv_indices.push(id);
+            }
+            for(let i = 0; i < h.opposite.subdiv_points.length; i++){
+                let point = h.opposite.subdiv_points[i][0];
+                let id = h.opposite.subdiv_points[i][1];
+                fv_indices.push(id);
+            }
             mesh_subdiv_next.add_face(fv_indices);
         });
-        // var fv_indices = [];
-        // f.edges().forEach(function(e){
-        //     fv_indices.push(offset1 + e.id);
-        // });
-        // mesh_subdiv_next.add_face(fv_indices);
+
+        f.vertices().forEach(function(v){
+            let fv_indices = [];
+            for(let i = 0; i < v.subdiv_points.length; i++){
+                let point = v.subdiv_points[i][0];
+                let id = v.subdiv_points[i][1];
+                fv_indices.push(id);
+            }
+            mesh_subdiv_next.add_face(fv_indices);
+        });
     });
 
     // set geometry for the next subdiv mesh
-    mesh_subdiv.vertices.forEach(function(v){
-        mesh_subdiv_next.vertices[v.id].point = v.subdiv_point;
-    });
-    mesh_subdiv.edges_forEach(function(e){
-        mesh_subdiv_next.vertices[offset1 + e.id].point = e.subdiv_point;
-    });
-    // ADDED
-    mesh_subdiv.faces.forEach(function(f){
-        mesh_subdiv_next.vertices[offset2 + f.id].point = f.centroid();
+    mesh_subdiv.vertex.forEach(function(v){
+        for(let i = 0; i < v.subdiv_points.length; i++){
+            let point = v.subdiv_points[i][0];
+            let id = v.subdiv_points[i][1];
+            mesh_subdiv_next[id].point = point;
+        }
     });
 
     mesh_subdiv = mesh_subdiv_next;
