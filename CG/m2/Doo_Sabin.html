@@ -101,76 +101,48 @@ function subdivide() {
     // 1. compute the centroid of the fact that corresponds to the outgoing edge from this vertex
     // 2. compute the middle points of the edges incident to the vertex
     // 3. compute the next point of the current vertices.
-
-    // initialization
-    let cnt = 0;
-    mesh_subdiv.faces.forEach(function(f){
-        f.subdiv_points = [];
-        f.halfedges().forEach(function(h){
-            h.subdiv_points = [];
-            h.vertex.subdiv_points = [];
-        });
-    });
-
     mesh_subdiv.faces.forEach(function(f){
         let centroid = f.centroid();
         f.halfedges().forEach(function(h){
-            // compute one of the next vertices as to h.from_vertex()
-            let mid1 = vec3.scale([], vec3.add([], h.vertex.point, h.from_vertex().point), 0.5);
-            let mid2 = vec3.scale([], vec3.add([], h.prev.vertex.point, h.prev.from_vertex().point), 0.5);
-            let point = vec3.scale([], vec3.add([], vec3.add([], vec3.add([], mid1, mid2), centroid), h.from_vertex().point), 1/4);
-            f.subdiv_points.push([point, cnt]);
-            h.subdiv_points.push([point, cnt]);
-            h.prev.subdiv_points.push([point, cnt]);
-            h.from_vertex().subdiv_points.push([point, cnt]);
-            cnt += 1;
+            h.mid = vec3.scale([], vec3.add([], h.vertex.point, h.from_vertex().point), 0.5);
+        });
+        f.halfedges().forEach(function(h){
+            let point = vec3.scale([], vec3.add([], vec3.add([], vec3.add([], h.mid, h.prev.mid), centroid), h.from_vertex().point), 1/4);
+            h.subdiv_point = point;
         });
     });
 
     // make next subdiv mesh topology
     var mesh_subdiv_next = make_halfedge_mesh();
+    mesh_subdiv.vertices.forEach(function(v){
+        let fv_indices = [];
+        v.outgoing_halfedges().forEach(function(h){
+            fv_indices.push(h.id);
+        });
+        mesh_subdiv_next.add_face(fv_indices);
+    });
+
+    // If you use halfedges().forEach, you need to avoid double-edges
+    mesh_subdiv.edges_forEach(function(e){
+        let fv_indices = [];
+        fv_indices.push(e.halfedge.id);
+        fv_indices.push(e.halfedge.next.id);
+        fv_indices.push(e.halfedge.opposite.id);
+        fv_indices.push(e.halfedge.opposite.next.id);
+        mesh_subdiv_next.add_face(fv_indices);
+    });
+
     mesh_subdiv.faces.forEach(function(f){
         let fv_indices = [];
-        for(let i = 0; i < f.subdiv_points.length; i++){
-            let point = f.subdiv_points[i][0];
-            let id = f.subdiv_points[i][1];
-            fv_indices.push(id);
-        }
-        mesh_subdiv_next.add_face(fv_indices);
-        
         f.halfedges().forEach(function(h){
-            let fv_indices = [];
-            for(let i = 0; i < h.subdiv_points.length; i++){
-                let point = h.subdiv_points[i][0];
-                let id = h.subdiv_points[i][1];
-                fv_indices.push(id);
-            }
-            for(let i = 0; i < h.opposite.subdiv_points.length; i++){
-                let point = h.opposite.subdiv_points[i][0];
-                let id = h.opposite.subdiv_points[i][1];
-                fv_indices.push(id);
-            }
-            mesh_subdiv_next.add_face(fv_indices);
+            fv_indices.push(h.id);
         });
-
-        f.vertices().forEach(function(v){
-            let fv_indices = [];
-            for(let i = 0; i < v.subdiv_points.length; i++){
-                let point = v.subdiv_points[i][0];
-                let id = v.subdiv_points[i][1];
-                fv_indices.push(id);
-            }
-            mesh_subdiv_next.add_face(fv_indices);
-        });
+        mesh_subdiv_next.add_face(fv_indices.reverse());
     });
 
     // set geometry for the next subdiv mesh
-    mesh_subdiv.vertex.forEach(function(v){
-        for(let i = 0; i < v.subdiv_points.length; i++){
-            let point = v.subdiv_points[i][0];
-            let id = v.subdiv_points[i][1];
-            mesh_subdiv_next[id].point = point;
-        }
+    mesh_subdiv.halfedges_forEach(function(h){
+        mesh_subdiv_next.vertices[h.id].point = h.subdiv_point;
     });
 
     mesh_subdiv = mesh_subdiv_next;
@@ -274,17 +246,17 @@ function init() {
     };
     function read_mesh(filename, content) {
         var mesh_temp = meshio.read(filename, content);
-        var has_nontriangle = false;
-        for (var i = 0; i < mesh_temp.faces.length; ++i) {
-            if (mesh_temp.faces[i].halfedges().length != 3) {
-                has_nontriangle = true;
-                break;
-            }
-        }
-        if (has_nontriangle) {
-            alert("Non-triangle polygon found! Please triangulate the mesh first.");
-            return;
-        }
+        // var has_nontriangle = false;
+        // for (var i = 0; i < mesh_temp.faces.length; ++i) {
+        //     if (mesh_temp.faces[i].halfedges().length != 3) {
+        //         has_nontriangle = true;
+        //         break;
+        //     }
+        // }
+        // if (has_nontriangle) {
+        //     alert("Non-triangle polygon found! Please triangulate the mesh first.");
+        //     return;
+        // }
         mesh_control = mesh_subdiv = mesh_temp;
         mesh_subdiv.compute_normals();
         bbox = make_boundingbox();
