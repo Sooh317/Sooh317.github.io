@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title> CG論 I1 </title> 
+        <ul>
+            <li><h2><a href="filter.html"> Bilateral Filtering </a></h2></dt>
+                <p> バイラテラルフィルタリングの実装を行なった。<br>
+                    Smoothingを行う処理は結構重たいようで、"Do Smoothing"を押してから数秒待ってからでないと結果が返ってこなかった。<br>
+                    実装をする上では簡単に書くことができるが、
+                    <ul>
+                        <li>各画像ピクセルに対して処理をしなければならない</li>
+                        <li>Gaussian Filter の大きさにも依存する</li>
+                    </ul>
+                    ことが計算を重くするファクターとなっている。
+                </p>
+        </ul>
+    </head>
+</html>
